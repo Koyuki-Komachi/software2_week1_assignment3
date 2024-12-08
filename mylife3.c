@@ -75,33 +75,27 @@ void my_print_cells(FILE* fp, int gen, int cell[height][width]) {
 
 //個別のセルの次状態を別の配列に書いておく
 void my_update_individual(int k, int l, int cell[height][width], int copy_cell[height][width]) {
+    //隣接するセルのうち生きているものの個数を数える
+    int count = 0;
+    for (int m = k - 1; m <= k + 1; ++m) {
+        for (int n = l - 1; n <= l + 1; ++n) {
+            if (m >= 0 && m < height && n >= 0 && n < width) {//隣接するセルがフィールド内にあるか確認する
+                if (cell[m][n] == 1) {
+                    count++;
+                }
+            }
+        }
+    }
+    //いま対象のセルが生きている場合
     if (cell[k][l] == 1) {
-        int count = 0;
-        for (int m = k - 1; m <= k + 1; ++m) {
-            for (int n = l - 1; n <= l + 1; ++n) {
-                if (m >= 0 && m < height && n >= 0 && n < width) {
-                    if (cell[m][n] == 1) {
-                        count++;
-                    }
-                }
-            }
-        }
-        if (count != 3 && count != 4) {
-            copy_cell[k][l] = 0;
+        if (count == 3 || count == 4) {
+            copy_cell[k][l] = 1;
         }else {
-            copy_cell[k][l] = 1; 
+            copy_cell[k][l] = 0;
         }
-    }else if (cell[k][l] == 0) {
-        int count = 0;
-        for (int m = k - 1; m <= k + 1; ++m) {
-            for (int n = l - 1; n <= l + 1; ++n) {
-                if (m >= 0 && m < height && n >= 0 && n < width) {
-                    if (cell[m][n] == 1) {
-                        count++;
-                    }
-                }
-            }
-        }
+    }
+    //いま対象のセルが死んでいる場合
+    if (cell[k][l] == 0) {
         if (count == 3) {
             copy_cell[k][l] = 1;
         }else {
