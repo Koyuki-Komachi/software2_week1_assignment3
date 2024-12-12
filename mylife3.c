@@ -142,7 +142,7 @@ void my_print_cells(FILE* fp, int gen, int cell[height][width]) {
             fprintf(fp, "|");
             for (int j = 0; j < width; ++j) {
                 if (cell[i][j]) {
-                    fprintf(fp, "&");//\e[31m#\e[0m
+                    fprintf(fp, "\e[31m#\e[0m");
                 }else {
                     fprintf(fp, " ");
                 }
