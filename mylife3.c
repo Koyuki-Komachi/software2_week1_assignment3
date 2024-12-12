@@ -17,60 +17,92 @@ void my_init_cells_lif(int cell[height][width], FILE *fp) {
 
 //initialize alive or dead patterns of cells when given .rle file
 void my_init_cells_rle(int cell[height][width], FILE *fp) {
-    //２行目以降にコメントが入っていないファイルを仮定する
-    char s[30];
-    fgets(s, sizeof(s), fp);
-    char run_count;
+    char s1[50];
+    int run_count = 0;
+    int run_count_small = 0;
     char tag;
-    char first_character = fgetc(fp);
-    if (first_character == 'o' || first_character == 'b') { // 連続文字数の１が省略されている場合
-        run_count = 1;
-        tag = first_character;
-        if (tag == 'o') {
-            cell[0][0] = 1;
-        }else if (tag == 'b') {
-            cell[0][0] = 0;
+    int count = 0;
+    int y = 0;
+    //2行目を読み取る
+    fgets(s1, sizeof(s1), fp);
+    printf("the second line is %s", s1);
+    //3行目以降を読み取る
+    for (int num = 0;; num++){
+        if (fscanf(fp, "%d", &run_count) == 1) {
+            if (fscanf(fp, "%c", &tag) == 1) {
+                for (int i = count; i < count + run_count; ++i) {
+                    if (tag == 'o') {
+                        cell[y][i] = 1;
+                    }else if (tag == 'b') {
+                        cell[y][i] = 0;
+                    }else {
+                        printf("this file includes character except b and o1\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            }else if (fscanf(fp, "%d", &run_count_small) == 1) {
+                run_count = 10 * run_count + run_count_small;
+                if (fscanf(fp, "%c", &tag) == 1) {
+                    for (int i = count; i < count + run_count; ++i) {
+                        if (tag == 'o') {
+                            cell[y][i] = 1;
+                        }else if (tag == 'b') {
+                            cell[y][i] = 0;
+                        }else {
+                            printf("this file includes character except b and o3\n");
+                            exit(EXIT_FAILURE);
+                        }
+                    }
+                }else {
+                    printf("this file is invalid3\n");
+                }
+            }
+            else {
+                printf("this file is invalid1\n");
+                exit(EXIT_FAILURE);
+            }
+            count += run_count;
+        }else if (fscanf(fp, "%c", &tag) == 1 && (tag == 'o' || tag == 'b')) {
+            run_count = 1;
+            if (tag == 'o') {
+                cell[y][count] = 1;
+            }else if (tag == 'b') {
+                cell[y][count] = 0;
+            }else {
+                printf("this file includes character except b and o2\n");
+                exit(EXIT_FAILURE);
+            }
+            count += run_count;
+        }else if (fscanf(fp, "%c", &tag) == 1 && (tag == '$')) {
+            for (int i = count; i < width; ++i) {
+                cell[y][i] = 0;
+            }
+            count = 0;
+            y++;
+        }else if (fscanf(fp, "%c", &tag) == 1 && tag == '!'){
+            for (int i = count; i < width; ++i) {
+                cell[y][i] = 0;
+            }
+            if (y == height - 1) {
+                printf("program successfully done\n");
+            }else if (y < height - 1) {
+                printf("the file may be smaller than field of 40 * 70\n");
+                exit(EXIT_FAILURE);
+            }else if (y >= height) {
+                printf("the file may be bigger than filed of 40 * 70\n");
+                exit(EXIT_FAILURE);
+            }
+            exit(EXIT_SUCCESS);
+        }else if (fscanf(fp, "%c", &tag) == 1 && (tag == '\n' || tag == ' ')) {
+            printf("be careful of escape sequence");
         }else {
-            printf("this file contains character except 'b' and 'o'");
+            printf("this file is invalid2\n");
             exit(EXIT_FAILURE);
-        }
-    }else if (first_character >= '0' && first_character <= '9') { // 連続文字数が書いてある場合
-        char second_character = fgetc(fp);
-        if (second_character == 'o' || second_character == 'b') { //連続文字数が１桁の場合
-            run_count = first_character;
-            tag = second_character;
-            if (tag == 'o') {
-                for (int i = 0; i < run_count; ++i) {
-                    cell[0][i] = 1;
-                }
-            }else if (tag == 'b') {
-                for (int i = 0; i < run_count; ++i) {
-                    cell[0][i] = 0;
-                }
-            }else {
-                printf("this file contains character except 'b' and 'o'");
-                exit(EXIT_FAILURE);
-            }
-        }
-        else if (second_character >= '0' && second_character <= '9') { //連続文字数が２桁の場合
-            run_count = atoi("first_character, second_character");
-            printf("run count is %d\n", run_count);
-            tag = fgetc(fp);
-            if (tag == 'o') {
-                for (int i = 0; i < run_count; ++i) {
-                    cell[0][i] = 1;
-                }
-            }else if (tag == 'b') {
-                for (int i = 0; i < run_count; ++i) {
-                    cell[0][i] = 0;
-                }
-            }else {
-                printf("this file contains character except 'b' and 'o");
-                exit(EXIT_FAILURE);
-            }
         }
     }
 }
+    
+
 
 //initialize alive or dead patterns of cells
 void my_init_cells(int cell[height][width], FILE* fp) {
@@ -85,9 +117,9 @@ void my_init_cells(int cell[height][width], FILE* fp) {
     else {
         char s[50];
         fgets(s, sizeof(s), fp);
-        if ('s[1]' == 'L') { // ファイルが.lifの場合
+        if (s[1] == 'L') { // ファイルが.lifの場合
             my_init_cells_lif(cell, fp);
-        }else if ('s[1]' == 'N') { // ファイルが.rleの場合
+        }else if (s[1] == 'N') { // ファイルが.rleの場合
             my_init_cells_rle(cell, fp);
         }
     }
