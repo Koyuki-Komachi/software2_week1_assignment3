@@ -16,7 +16,7 @@ void my_init_cells_lif(int cell[height][width], FILE *fp) {
 }
 
 //initialize alive or dead patterns of cells when given .rle file
-void my_init_cells_rle(int cell[height][width], FILE *fp) {
+int my_init_cells_rle(int cell[height][width], FILE *fp) {
     char s1[50];
     int run_count = 0;
     int run_count_small = 0;
@@ -29,7 +29,9 @@ void my_init_cells_rle(int cell[height][width], FILE *fp) {
     //3行目以降を読み取る
     for (int num = 0;; num++){
         if (fscanf(fp, "%d", &run_count) == 1) {
+            printf("%d", run_count);                                                    //
             if (fscanf(fp, "%c", &tag) == 1) {
+                printf("%c", tag);                                                      //
                 for (int i = count; i < count + run_count; ++i) {
                     if (tag == 'o') {
                         cell[y][i] = 1;
@@ -40,29 +42,13 @@ void my_init_cells_rle(int cell[height][width], FILE *fp) {
                         exit(EXIT_FAILURE);
                     }
                 }
-            }else if (fscanf(fp, "%d", &run_count_small) == 1) {
-                run_count = 10 * run_count + run_count_small;
-                if (fscanf(fp, "%c", &tag) == 1) {
-                    for (int i = count; i < count + run_count; ++i) {
-                        if (tag == 'o') {
-                            cell[y][i] = 1;
-                        }else if (tag == 'b') {
-                            cell[y][i] = 0;
-                        }else {
-                            printf("this file includes character except b and o3\n");
-                            exit(EXIT_FAILURE);
-                        }
-                    }
-                }else {
-                    printf("this file is invalid3\n");
-                }
-            }
-            else {
+            }else {
                 printf("this file is invalid1\n");
                 exit(EXIT_FAILURE);
             }
             count += run_count;
-        }else if (fscanf(fp, "%c", &tag) == 1 && (tag == 'o' || tag == 'b')) {
+        }else if ((fscanf(fp, "%c", &tag) == 1) && (tag == 'o' || tag == 'b')) {
+            printf("%c", tag);                                                          //
             run_count = 1;
             if (tag == 'o') {
                 cell[y][count] = 1;
@@ -73,18 +59,21 @@ void my_init_cells_rle(int cell[height][width], FILE *fp) {
                 exit(EXIT_FAILURE);
             }
             count += run_count;
-        }else if (fscanf(fp, "%c", &tag) == 1 && (tag == '$')) {
+        }else if (tag == '$') {
+            printf("%c", tag);                                                          //
             for (int i = count; i < width; ++i) {
                 cell[y][i] = 0;
             }
             count = 0;
             y++;
-        }else if (fscanf(fp, "%c", &tag) == 1 && tag == '!'){
+        }else if (tag == '!'){
+            printf("%c", tag);                                                          //
             for (int i = count; i < width; ++i) {
                 cell[y][i] = 0;
             }
             if (y == height - 1) {
                 printf("program successfully done\n");
+                return 0;
             }else if (y < height - 1) {
                 printf("the file may be smaller than field of 40 * 70\n");
                 exit(EXIT_FAILURE);
@@ -92,10 +81,8 @@ void my_init_cells_rle(int cell[height][width], FILE *fp) {
                 printf("the file may be bigger than filed of 40 * 70\n");
                 exit(EXIT_FAILURE);
             }
-            exit(EXIT_SUCCESS);
-        }else if (fscanf(fp, "%c", &tag) == 1 && (tag == '\n' || tag == ' ')) {
-            printf("be careful of escape sequence");
         }else {
+            printf("%d\n", tag);
             printf("this file is invalid2\n");
             exit(EXIT_FAILURE);
         }
@@ -155,7 +142,7 @@ void my_print_cells(FILE* fp, int gen, int cell[height][width]) {
             fprintf(fp, "|");
             for (int j = 0; j < width; ++j) {
                 if (cell[i][j]) {
-                    fprintf(fp, "\e[31m#\e[0m");
+                    fprintf(fp, "&");//\e[31m#\e[0m
                 }else {
                     fprintf(fp, " ");
                 }
